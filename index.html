@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thinking Lab: The Three-Line Challenge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter, Merriweather (for warm editorial lab prompts), and JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f1ea;
+            color: #1e293b;
+        }
+        .font-serif-lab {
+            font-family: 'Merriweather', serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Tactile Drafting Paper Aesthetic */
+        .drafting-sheet {
+            background-color: #fcfaf5;
+            background-image:
+                radial-gradient(#cbd5e1 1.15px, transparent 1.15px),
+                linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px, 96px 96px, 96px 96px;
+            background-position: 0 0, 0 0, 0 0;
+        }
+        /* Subtle ruler tick decoration */
+        .ruler-strip {
+            background-image: repeating-linear-gradient(
+                to right,
+                #94a3b8 0px,
+                #94a3b8 1px,
+                transparent 1px,
+                transparent 12px
+            );
+        }
+        canvas {
+            touch-action: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.92; }
+        }
+        .celebrate-badge {
+            animation: pulseGlow 1.8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-amber-200 selection:text-slate-900">
+
+    <!-- Top Drafting Desk Header -->
+    <header class="bg-[#fcfaf5]/95 backdrop-blur-md border-b border-stone-300/80 sticky top-0 z-30 shadow-2xs">
+        <div class="ruler-strip h-1.5 w-full opacity-45"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shadow-2xs shrink-0">
+                    <!-- Drafting Compass & Triangle Icon -->
+                    <svg class="w-6 h-6 text-amber-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 4 21 19 3 19" stroke-linejoin="round" fill="rgba(245, 158, 11, 0.15)"/>
+                        <line x1="2" y1="15" x2="22" y2="11" stroke="#e11d48" stroke-width="1.75"/>
+                        <line x1="7" y1="2" x2="15" y2="22" stroke="#2563eb" stroke-width="1.75"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300/80">Thinking Lab</span>
+                        <span class="text-xs text-stone-500 hidden sm:inline">Interactive Geometry &amp; Spatial Reasoning</span>
+                    </div>
+                    <h1 class="font-serif-lab text-lg sm:text-xl font-bold text-slate-900 tracking-tight">The Three-Line Challenge</h1>
+                </div>
+            </div>
+
+            <!-- Drafting Tools Toggles -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="toggle-snap" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-stone-300 bg-white hover:bg-stone-100 text-slate-700 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs" title="Snap control handles to grid intersections">
+                    <span id="snap-dot" class="w-2 h-2 rounded-full bg-stone-400"></span>
+                    <span>Snap to Grid</span>
+                </button>
+                <button id="toggle-guides" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-amber-400 bg-amber-50 text-amber-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs" title="Show ruler measurements, angles & intersection coordinates">
+                    <span id="guides-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>Ruler &amp; Angle Guides</span>
+                </button>
+                <button id="btn-reset-sheet" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-stone-300 bg-white hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-slate-700 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs" title="Reset sheet to default arrangement">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>Reset Sheet</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-6">
+
+        <!-- Top Grid: Interactive Drafting Canvas + Guided Step-by-Step Lab Tasks -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+            <!-- Left 7 Cols: Interactive Drafting Sheet Canvas -->
+            <section class="lg:col-span-7 flex flex-col bg-[#fcfaf5] rounded-2xl border-2 border-stone-300/90 shadow-md overflow-hidden">
+                <!-- Canvas Top Telemetry Bar -->
+                <div class="px-4 py-2.5 bg-stone-100/90 border-b border-stone-300/80 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
+                            <span id="status-dot" class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            <span id="status-text">1 Triangle Formed</span>
+                        </span>
+                    </div>
+
+                    <!-- Live Geometric Metrics -->
+                    <div class="flex items-center gap-3 text-xs mono text-stone-600">
+                        <div class="bg-white px-2.5 py-1 rounded-lg border border-stone-200">
+                            Intersections: <strong id="metric-intersections" class="text-slate-900">3</strong>
+                        </div>
+                        <div class="bg-white px-2.5 py-1 rounded-lg border border-stone-200">
+                            Triangles: <strong id="metric-triangles" class="text-emerald-700">1</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Canvas Container -->
+                <div id="canvas-wrapper" class="relative w-full h-[380px] sm:h-[450px] drafting-sheet cursor-crosshair select-none">
+                    <canvas id="geometry-canvas"></canvas>
+
+                    <!-- Floating Line Color Legend & Drag Hint -->
+                    <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                        <div class="pointer-events-auto bg-white/95 backdrop-blur-xs border border-stone-300/90 rounded-xl px-3 py-1.5 shadow-xs flex flex-wrap items-center gap-3 text-xs font-medium">
+                            <span class="flex items-center gap-1.5 text-rose-700">
+                                <span class="w-3 h-1 rounded-full bg-rose-600 inline-block"></span>
+                                Line 1
+                            </span>
+                            <span class="flex items-center gap-1.5 text-blue-700">
+                                <span class="w-3 h-1 rounded-full bg-blue-600 inline-block"></span>
+                                Line 2
+                            </span>
+                            <span class="flex items-center gap-1.5 text-emerald-700">
+                                <span class="w-3 h-1 rounded-full bg-emerald-600 inline-block"></span>
+                                Line 3
+                            </span>
+                        </div>
+
+                        <div class="bg-stone-900/80 text-stone-100 text-[11px] px-2.5 py-1 rounded-lg backdrop-blur-xs">
+                            Drag circular handles to rotate • Drag line body to slide
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Explanation Strip -->
+                <div id="status-explanation-bar" class="px-4 py-3 bg-amber-50/70 border-t border-stone-300/80 text-xs sm:text-sm text-slate-700 flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-amber-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <p id="status-explanation">All three lines intersect pairwise at 3 distinct non-collinear points, enclosing <strong>1 unique triangle</strong>.</p>
+                </div>
+            </section>
+
+            <!-- Right 5 Cols: Guided Step-by-Step Lab Tasks -->
+            <aside class="lg:col-span-5 flex flex-col justify-between bg-[#fcfaf5] rounded-2xl border-2 border-stone-300/90 shadow-md p-4 sm:p-5 space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-stone-200 pb-2.5">
+                        <div>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-stone-500">Guided Lab Procedure</h2>
+                            <p class="text-xs text-stone-500">Complete all 3 challenges on your drafting sheet</p>
+                        </div>
+                        <span id="progress-pill" class="mono text-xs font-bold px-2.5 py-1 rounded-full bg-stone-200 text-stone-800">
+                            0 / 3 Done
+                        </span>
+                    </div>
+
+                    <!-- Task 1 Card -->
+                    <div id="task-card-1" class="task-card rounded-xl border-2 border-amber-400 bg-white p-3.5 shadow-2xs transition-all">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span id="task-badge-1" class="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                                <h3 class="text-sm font-bold text-slate-900">Form Exactly One Triangle</h3>
+                            </div>
+                            <span id="task-status-1" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Active</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                            Draw or drag three straight lines so that they intersect each other and enclose <strong>exactly one triangle</strong>.
+                        </p>
+                        <div class="mt-2.5 flex flex-wrap items-center gap-2">
+                            <button onclick="activateTask(1, true)" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-slate-800 transition-colors cursor-pointer">
+                                Load Triangle Example
+                            </button>
+                            <button onclick="verifyCurrentTask(1)" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer">
+                                Verify My Drawing
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Task 2 Card -->
+                    <div id="task-card-2" class="task-card rounded-xl border border-stone-200 bg-white/80 p-3.5 transition-all">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span id="task-badge-2" class="w-6 h-6 rounded-full bg-stone-200 text-stone-700 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                                <h3 class="text-sm font-bold text-slate-900">Intersect Without Enclosing a Triangle</h3>
+                            </div>
+                            <span id="task-status-2" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">Step 2</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                            Arrange all three lines so every line intersects at least one other line, yet <strong>0 triangles</strong> are enclosed.
+                        </p>
+                        <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+                            <button onclick="loadPreset('concurrent')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition-colors cursor-pointer">
+                                Preset: Concurrent Point
+                            </button>
+                            <button onclick="loadPreset('parallel2')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 transition-colors cursor-pointer">
+                                Preset: 2 Parallel + Transversal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Task 3 Card -->
+                    <div id="task-card-3" class="task-card rounded-xl border border-stone-200 bg-white/80 p-3.5 transition-all">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span id="task-badge-3" class="w-6 h-6 rounded-full bg-stone-200 text-stone-700 text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                                <h3 class="text-sm font-bold text-slate-900">Move Just One Line to Form a Triangle</h3>
+                            </div>
+                            <span id="task-status-3" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">Step 3</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                            Start from a non-triangle intersecting drawing and move <strong>only one line</strong> to enclose a triangle!
+                        </p>
+                        <!-- Single-Line Move Tracker Status -->
+                        <div id="task3-tracker" class="mt-2 px-2.5 py-1.5 rounded-lg bg-stone-100 border border-stone-200 text-[11px] text-slate-700 flex items-center justify-between gap-2">
+                            <span id="task3-tracker-text">Click "Start Challenge 3" to begin tracking.</span>
+                            <button onclick="startTask3Challenge()" class="px-2 py-1 rounded-md text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white shrink-0 cursor-pointer">
+                                Start Challenge 3
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Feedback Toast inside Task Panel -->
+                <div id="lab-feedback-banner" class="rounded-xl bg-stone-900 text-stone-100 px-3.5 py-2.5 text-xs flex items-center justify-between gap-2">
+                    <span id="lab-feedback-text">Tip: Try dragging any colored line or handle directly on the sheet.</span>
+                    <button onclick="cycleNextTask()" id="btn-next-step" class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] shrink-0 cursor-pointer">
+                        Next Step →
+                    </button>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Bottom Section: Observation & Reflection Panel -->
+        <section class="bg-[#fcfaf5] rounded-2xl border-2 border-stone-300/90 shadow-md p-5 sm:p-6 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 pb-3">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">Observe Your Drawings Carefully</span>
+                    <h2 class="font-serif-lab text-lg font-bold text-slate-900">Observation &amp; Reflection Questions</h2>
+                </div>
+                <button id="btn-reveal-all" onclick="toggleAllReflections()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-200/80 hover:bg-stone-300/80 text-slate-800 transition-colors cursor-pointer">
+                    Reveal All Insights
+                </button>
+            </div>
+
+            <!-- 3 Reflection Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Question 1 -->
+                <div class="rounded-xl bg-white border border-stone-200/90 p-4 flex flex-col justify-between shadow-2xs">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="mono text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">Question 1</span>
+                            <button onclick="loadPreset('triangle')" class="text-[11px] font-medium text-stone-500 hover:text-slate-900 underline cursor-pointer">Test on sheet</button>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                            What conditions must three straight lines satisfy to form a triangle?
+                        </h3>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-stone-100">
+                        <button onclick="toggleReflection(1)" id="refl-btn-1" class="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                            <span>Reveal / Check Insight</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="refl-ans-1" class="hidden mt-3 text-xs text-slate-700 bg-stone-50 rounded-lg p-3 border border-stone-200/80 space-y-1.5 leading-relaxed">
+                            <p>Three coplanar straight lines form a triangle if and only if:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li><strong>No two lines are parallel</strong> (so every pair intersects, creating 3 intersection points).</li>
+                                <li><strong>All three lines are not concurrent</strong> (they do not all pass through the exact same single point).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="rounded-xl bg-white border border-stone-200/90 p-4 flex flex-col justify-between shadow-2xs">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="mono text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">Question 2</span>
+                            <button onclick="loadPreset('triangle')" class="text-[11px] font-medium text-stone-500 hover:text-slate-900 underline cursor-pointer">Test on sheet</button>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                            Can three straight lines form more than one triangle?
+                        </h3>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-stone-100">
+                        <button onclick="toggleReflection(2)" id="refl-btn-2" class="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                            <span>Reveal / Check Insight</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="refl-ans-2" class="hidden mt-3 text-xs text-slate-700 bg-stone-50 rounded-lg p-3 border border-stone-200/80 space-y-1.5 leading-relaxed">
+                            <p><strong>No.</strong> Two distinct straight lines can intersect at <strong>most once</strong>.</p>
+                            <p>Therefore, three straight lines can produce at most <strong>3 intersection points</strong> in total. Since a triangle requires 3 vertices, three non-collinear intersection points define <strong>at most one unique triangle</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="rounded-xl bg-white border border-stone-200/90 p-4 flex flex-col justify-between shadow-2xs">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Question 3</span>
+                            <button onclick="loadPreset('parallel2')" class="text-[11px] font-medium text-stone-500 hover:text-slate-900 underline cursor-pointer">Test on sheet</button>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                            Does changing the position of a line always change the number of triangles formed?
+                        </h3>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-stone-100">
+                        <button onclick="toggleReflection(3)" id="refl-btn-3" class="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                            <span>Reveal / Check Insight</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="refl-ans-3" class="hidden mt-3 text-xs text-slate-700 bg-stone-50 rounded-lg p-3 border border-stone-200/80 space-y-1.5 leading-relaxed">
+                            <p><strong>No.</strong> You can slide (translate) or slightly rotate one of the lines in a triangle—changing the triangle's size and shape—while keeping the count at <strong>1 triangle</strong> (as long as it doesn't become parallel to another line or pass through their intersection).</p>
+                            <p>Likewise, sliding a parallel line to a new parallel spot keeps the triangle count at <strong>0</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Takeaway Banner -->
+            <div class="rounded-2xl bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 border-2 border-amber-300/90 p-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-2xs">
+                        ✦
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-900">Core Geometric Takeaway</div>
+                        <p class="font-serif-lab text-sm sm:text-base font-bold text-slate-900">
+                            "The number of lines alone does not determine the shape. Their arrangement matters."
+                        </p>
+                    </div>
+                </div>
+                <span class="mono text-[11px] font-semibold px-3 py-1 rounded-full bg-white/90 text-amber-950 border border-amber-300 shrink-0">
+                    3 Lines → 0 or 1 Triangle
+                </span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /**
+         * Thinking Lab: The Three-Line Challenge
+         * --------------------------------------------------------------------
+         * Interactive 2D Euclidean Geometry Engine on HTML5 Canvas:
+         * - Each line is defined by two draggable control handles (p1, p2) in normalized
+         *   drafting-sheet coordinates (so resizing preserves relative geometry cleanly).
+         * - Computes exact pairwise intersections, detects parallelism, concurrency,
+         *   overlapping lines, and enclosed triangle area, side lengths, and interior angles.
+         */
+
+        const canvas = document.getElementById('geometry-canvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvas-wrapper');
+
+        // Drafting Sheet Logical Coordinate System (1000 x 650 virtual units scaled responsively)
+        const SHEET_W = 1000;
+        const SHEET_H = 650;
+        const GRID_STEP = 40; // Logical snap step
+
+        // Line Definitions (in logical coordinates)
+        let lines = [
+            {
+                id: 0,
+                name: 'Line 1',
+                color: '#e11d48',      // Coral Red
+                lightColor: 'rgba(225, 29, 72, 0.14)',
+                p1: { x: 240, y: 470 },
+                p2: { x: 520, y: 150 }
+            },
+            {
+                id: 1,
+                name: 'Line 2',
+                color: '#2563eb',      // Cobalt Blue
+                lightColor: 'rgba(37, 99, 235, 0.14)',
+                p1: { x: 480, y: 150 },
+                p2: { x: 760, y: 470 }
+            },
+            {
+                id: 2,
+                name: 'Line 3',
+                color: '#059669',      // Emerald Green
+                lightColor: 'rgba(5, 150, 105, 0.14)',
+                p1: { x: 210, y: 420 },
+                p2: { x: 790, y: 420 }
+            }
+        ];
+
+        // Interactive & Lab State
+        let snapToGrid = false;
+        let showGuides = true;
+        let activeDrag = null; // { type: 'handle' | 'line', lineIdx, handleKey, offset, startP1, startP2, startMouse }
+        let hoverTarget = null;
+        let currentAnalysis = null;
+
+        // Task Progress State
+        let completedTasks = { 1: false, 2: false, 3: false };
+        let activeTaskNum = 1;
+        let task3State = {
+            active: false,
+            movedLineIdx: null,
+            locked: false
+        };
+
+        /**
+         * Convert mouse/touch client coordinates to logical drafting sheet coordinates
+         */
+        function clientToLogical(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = SHEET_W / rect.width;
+            const scaleY = SHEET_H / rect.height;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function maybeSnap(pt) {
+            if (!snapToGrid) return pt;
+            return {
+                x: Math.round(pt.x / GRID_STEP) * GRID_STEP,
+                y: Math.round(pt.y / GRID_STEP) * GRID_STEP
+            };
+        }
+
+        function clampLogical(pt) {
+            return {
+                x: Math.max(40, Math.min(SHEET_W - 40, pt.x)),
+                y: Math.max(40, Math.min(SHEET_H - 40, pt.y))
+            };
+        }
+
+        /**
+         * Geometric Utilities for Infinite Lines
+         */
+        function lineCoefficients(line) {
+            // Standard form: A*x + B*y + C = 0
+            const A = line.p2.y - line.p1.y;
+            const B = line.p1.x - line.p2.x;
+            const norm = Math.hypot(A, B) || 1;
+            const nA = A / norm;
+            const nB = B / norm;
+            const nC = -(nA * line.p1.x + nB * line.p1.y);
+            return { A: nA, B: nB, C: nC };
+        }
+
+        function intersectInfiniteLines(l1, l2) {
+            const c1 = lineCoefficients(l1);
+            const c2 = lineCoefficients(l2);
+            const det = c1.A * c2.B - c2.A * c1.B;
+
+            // Parallel check (angle between lines < ~0.6 degrees)
+            if (Math.abs(det) < 0.011) {
+                // Distance between parallel lines
+                const dist = Math.abs(Math.abs(c1.C) - Math.abs(c2.C));
+                // Check sign alignment for normal vectors
+                const dot = c1.A * c2.A + c1.B * c2.B;
+                const alignedC2 = dot >= 0 ? c2.C : -c2.C;
+                const trueDist = Math.abs(c1.C - alignedC2);
+                return {
+                    type: trueDist < 6 ? 'overlapping' : 'parallel',
+                    dist: trueDist
+                };
+            }
+
+            const x = (c1.B * c2.C - c2.B * c1.C) / det;
+            const y = (c2.A * c1.C - c1.A * c2.C) / det;
+            return {
+                type: 'point',
+                x,
+                y
+            };
+        }
+
+        function distPoints(p, q) {
+            return Math.hypot(p.x - q.x, p.y - q.y);
+        }
+
+        function pointToSegmentDist(pt, a, b) {
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return distPoints(pt, a);
+            let t = ((pt.x - a.x) * dx + (pt.y - a.y) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            return distPoints(pt, { x: a.x + t * dx, y: a.y + t * dy });
+        }
+
+        function pointToInfiniteLineDist(pt, line) {
+            const c = lineCoefficients(line);
+            return Math.abs(c.A * pt.x + c.B * pt.y + c.C);
+        }
+
+        /**
+         * Clip an infinite line to the visible drafting sheet bounding box [0, SHEET_W] x [0, SHEET_H]
+         */
+        function getInfiniteLineEndpoints(line) {
+            const dx = line.p2.x - line.p1.x;
+            const dy = line.p2.y - line.p1.y;
+            if (Math.hypot(dx, dy) < 1e-4) return [line.p1, line.p2];
+
+            const tValues = [];
+            if (Math.abs(dx) > 1e-6) {
+                tValues.push((0 - line.p1.x) / dx);
+                tValues.push((SHEET_W - line.p1.x) / dx);
+            }
+            if (Math.abs(dy) > 1e-6) {
+                tValues.push((0 - line.p1.y) / dy);
+                tValues.push((SHEET_H - line.p1.y) / dy);
+            }
+
+            const validPts = [];
+            for (const t of tValues) {
+                const x = line.p1.x + t * dx;
+                const y = line.p1.y + t * dy;
+                if (x >= -1 && x <= SHEET_W + 1 && y >= -1 && y <= SHEET_H + 1) {
+                    validPts.push({ x, y });
+                }
+            }
+
+            if (validPts.length >= 2) {
+                // Pick the two farthest points
+                let maxD = -1;
+                let pair = [validPts[0], validPts[1]];
+                for (let i = 0; i < validPts.length; i++) {
+                    for (let j = i + 1; j < validPts.length; j++) {
+                        const d = distPoints(validPts[i], validPts[j]);
+                        if (d > maxD) {
+                            maxD = d;
+                            pair = [validPts[i], validPts[j]];
+                        }
+                    }
+                }
+                return pair;
+            }
+            return [line.p1, line.p2];
+        }
+
+        /**
+         * Core Geometric Classification Engine
+         */
+        function analyzeConfiguration() {
+            const pairs = [
+                { i: 0, j: 1, res: intersectInfiniteLines(lines[0], lines[1]) },
+                { i: 0, j: 2, res: intersectInfiniteLines(lines[0], lines[2]) },
+                { i: 1, j: 2, res: intersectInfiniteLines(lines[1], lines[2]) }
+            ];
+
+            const overlappingCount = pairs.filter(p => p.res.type === 'overlapping').length;
+            const parallelCount = pairs.filter(p => p.res.type === 'parallel').length;
+            const pointPairs = pairs.filter(p => p.res.type === 'point');
+
+            // Cluster nearby intersection points (within 11 logical units = concurrent)
+            const uniquePoints = [];
+            for (const pp of pointPairs) {
+                const pt = { x: pp.res.x, y: pp.res.y, lines: [pp.i, pp.j] };
+                const existing = uniquePoints.find(u => distPoints(u, pt) < 11);
+                if (existing) {
+                    existing.x = (existing.x + pt.x) / 2;
+                    existing.y = (existing.y + pt.y) / 2;
+                    existing.count++;
+                } else {
+                    uniquePoints.push({ x: pt.x, y: pt.y, count: 1 });
+                }
+            }
+
+            // Classification Cases
+            if (overlappingCount > 0) {
+                return {
+                    code: 'overlapping',
+                    badge: 'Overlapping Lines — 0 Triangles',
+                    badgeStyle: 'bg-purple-100 text-purple-900 border-purple-300',
+                    dotColor: 'bg-purple-600',
+                    intersections: uniquePoints,
+                    intersectionCount: uniquePoints.length,
+                    triangleCount: 0,
+                    explanation: 'Two or more lines lie directly on top of one another (coincident), leaving fewer than 3 distinct boundary lines.'
+                };
+            }
+
+            if (parallelCount === 3) {
+                return {
+                    code: 'parallel3',
+                    badge: 'All Three Parallel — 0 Triangles',
+                    badgeStyle: 'bg-slate-200 text-slate-800 border-slate-300',
+                    dotColor: 'bg-slate-600',
+                    intersections: [],
+                    intersectionCount: 0,
+                    triangleCount: 0,
+                    explanation: 'All three lines share the same direction (slope) and never intersect, producing 0 vertices and 0 triangles.'
+                };
+            }
+
+            if (parallelCount >= 1) {
+                return {
+                    code: 'parallel2',
+                    badge: 'Two Parallel Lines — 0 Triangles',
+                    badgeStyle: 'bg-blue-100 text-blue-900 border-blue-300',
+                    dotColor: 'bg-blue-600',
+                    intersections: uniquePoints,
+                    intersectionCount: uniquePoints.length,
+                    triangleCount: 0,
+                    explanation: 'Two lines are parallel and never meet, while the third line crosses both. All 3 lines intersect, yet they leave an open channel with <strong>0 triangles</strong>.'
+                };
+            }
+
+            // All 3 pairs intersect at points; check if concurrent (all 3 meet at 1 point)
+            if (uniquePoints.length === 1) {
+                return {
+                    code: 'concurrent',
+                    badge: 'Concurrent Lines — 0 Triangles',
+                    badgeStyle: 'bg-amber-100 text-amber-900 border-amber-300',
+                    dotColor: 'bg-amber-600',
+                    intersections: uniquePoints,
+                    intersectionCount: 1,
+                    triangleCount: 0,
+                    explanation: 'All three lines pass through the <strong>exact same single point</strong> (concurrent). They intersect without enclosing any region (0 triangles).'
+                };
+            }
+
+            // Otherwise we have 3 distinct non-collinear intersection points -> 1 Triangle!
+            const [A, B, C] = uniquePoints;
+            const sideAB = distPoints(A, B);
+            const sideBC = distPoints(B, C);
+            const sideCA = distPoints(C, A);
+            // Heron's area
+            const s = (sideAB + sideBC + sideCA) / 2;
+            const area = Math.sqrt(Math.max(0, s * (s - sideAB) * (s - sideBC) * (s - sideCA)));
+
+            // Interior angles (Law of Cosines)
+            const angleA = Math.acos(Math.max(-1, Math.min(1, (sideAB * sideAB + sideCA * sideCA - sideBC * sideBC) / (2 * sideAB * sideCA)))) * 180 / Math.PI;
+            const angleB = Math.acos(Math.max(-1, Math.min(1, (sideAB * sideAB + sideBC * sideBC - sideCA * sideCA) / (2 * sideAB * sideBC)))) * 180 / Math.PI;
+            const angleC = Math.max(0, 180 - angleA - angleB);
+
+            const onSheet = uniquePoints.every(p => p.x >= 0 && p.x <= SHEET_W && p.y >= 0 && p.y <= SHEET_H);
+
+            return {
+                code: 'triangle',
+                badge: '1 Triangle Formed',
+                badgeStyle: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+                dotColor: 'bg-emerald-600',
+                intersections: uniquePoints,
+                intersectionCount: 3,
+                triangleCount: 1,
+                vertices: [A, B, C],
+                sides: [sideAB, sideBC, sideCA],
+                angles: [angleA, angleB, angleC],
+                area,
+                onSheet,
+                explanation: onSheet
+                    ? 'No two lines are parallel and they do not meet at a single point—enclosing <strong>1 unique triangle</strong> with 3 vertices.'
+                    : 'The 3 lines are non-parallel and non-concurrent, forming <strong>1 unique triangle</strong> (one or more vertices extend slightly beyond the sheet border—drag inward to view all 3 corners).'
+            };
+        }
+
+        /**
+         * Update UI Badges, Metrics, and Task Completion States
+         */
+        function syncUIWithAnalysis(analysis) {
+            currentAnalysis = analysis;
+
+            const badge = document.getElementById('status-badge');
+            const dot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const explanation = document.getElementById('status-explanation');
+            const mInter = document.getElementById('metric-intersections');
+            const mTri = document.getElementById('metric-triangles');
+
+            badge.className = `px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shadow-2xs ${analysis.badgeStyle}`;
+            dot.className = `w-2 h-2 rounded-full ${analysis.dotColor}`;
+            statusText.textContent = analysis.badge;
+            explanation.innerHTML = analysis.explanation;
+
+            mInter.textContent = analysis.intersectionCount;
+            mTri.textContent = analysis.triangleCount;
+            mTri.className = analysis.triangleCount === 1 ? 'text-emerald-700' : 'text-amber-700';
+
+            // Automatic Task Completion Checks
+            if (activeTaskNum === 1 && analysis.code === 'triangle' && analysis.onSheet) {
+                markTaskCompleted(1, 'Awesome! You formed 1 unique triangle with 3 distinct intersection vertices.');
+            }
+
+            if (activeTaskNum === 2 && (analysis.code === 'concurrent' || analysis.code === 'parallel2')) {
+                markTaskCompleted(2, `Great job! (${analysis.badge}) — all 3 lines intersect without enclosing a triangle.`);
+            }
+
+            if (task3State.active && !task3State.locked && analysis.code === 'triangle' && analysis.onSheet && task3State.movedLineIdx !== null) {
+                task3State.locked = true;
+                const lineName = lines[task3State.movedLineIdx].name;
+                document.getElementById('task3-tracker-text').innerHTML = `<strong class="text-emerald-700">Solved!</strong> You moved only <strong>${lineName}</strong> to create a triangle.`;
+                markTaskCompleted(3, `Challenge 3 Complete! Moving just ${lineName} transformed the arrangement into a triangle.`);
+            }
+        }
+
+        function markTaskCompleted(taskNum, message) {
+            if (!completedTasks[taskNum]) {
+                completedTasks[taskNum] = true;
+                const badge = document.getElementById(`task-badge-${taskNum}`);
+                const status = document.getElementById(`task-status-${taskNum}`);
+                badge.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center shrink-0';
+                badge.textContent = '✓';
+                status.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+                status.textContent = 'Completed';
+
+                const doneCount = Object.values(completedTasks).filter(Boolean).length;
+                document.getElementById('progress-pill').textContent = `${doneCount} / 3 Done`;
+            }
+            if (message) {
+                document.getElementById('lab-feedback-text').textContent = message;
+            }
+        }
+
+        function activateTask(num, loadDefaultPreset = false) {
+            activeTaskNum = num;
+            [1, 2, 3].forEach(i => {
+                const card = document.getElementById(`task-card-${i}`);
+                if (i === num) {
+                    card.classList.remove('border-stone-200', 'bg-white/80');
+                    card.classList.add('border-2', 'border-amber-400', 'bg-white', 'shadow-2xs');
+                } else {
+                    card.classList.remove('border-2', 'border-amber-400', 'bg-white', 'shadow-2xs');
+                    card.classList.add('border', 'border-stone-200', 'bg-white/80');
+                }
+            });
+
+            if (loadDefaultPreset) {
+                if (num === 1) loadPreset('triangle');
+                if (num === 2) loadPreset('concurrent');
+                if (num === 3) startTask3Challenge();
+            }
+        }
+
+        function cycleNextTask() {
+            const next = activeTaskNum >= 3 ? 1 : activeTaskNum + 1;
+            activateTask(next, true);
+        }
+
+        function verifyCurrentTask(taskNum) {
+            activateTask(taskNum, false);
+            const a = analyzeConfiguration();
+            if (taskNum === 1) {
+                if (a.code === 'triangle') {
+                    markTaskCompleted(1, 'Verified! Your 3 lines form exactly 1 triangle.');
+                } else {
+                    document.getElementById('lab-feedback-text').textContent = `Not yet: Currently "${a.badge}". Make sure no two lines are parallel and they don't all meet at one point.`;
+                }
+            }
+        }
+
+        function startTask3Challenge() {
+            activateTask(3, false);
+            loadPreset('parallel2', false);
+            task3State = {
+                active: true,
+                movedLineIdx: null,
+                locked: false
+            };
+            document.getElementById('task3-tracker-text').innerHTML = 'Started from <strong>2 Parallel Lines</strong>. Move <strong>1 line</strong> only!';
+            document.getElementById('lab-feedback-text').textContent = 'Challenge 3 Active: Drag just ONE line (e.g., rotate Line 1 or Line 2) to close a triangle.';
+        }
+
+        /**
+         * Presets for Guided Discovery
+         */
+        function loadPreset(presetName, updateTaskFocus = true) {
+            if (presetName === 'triangle') {
+                lines[0].p1 = { x: 240, y: 470 };
+                lines[0].p2 = { x: 520, y: 150 };
+                lines[1].p1 = { x: 480, y: 150 };
+                lines[1].p2 = { x: 760, y: 470 };
+                lines[2].p1 = { x: 210, y: 420 };
+                lines[2].p2 = { x: 790, y: 420 };
+                if (updateTaskFocus) activateTask(1, false);
+            } else if (presetName === 'concurrent') {
+                // All 3 lines pass cleanly through (500, 325)
+                lines[0].p1 = { x: 260, y: 145 };
+                lines[0].p2 = { x: 740, y: 505 };
+                lines[1].p1 = { x: 740, y: 145 };
+                lines[1].p2 = { x: 260, y: 505 };
+                lines[2].p1 = { x: 500, y: 110 };
+                lines[2].p2 = { x: 500, y: 540 };
+                if (updateTaskFocus) activateTask(2, false);
+            } else if (presetName === 'parallel2') {
+                // Line 1 & Line 2 parallel horizontal; Line 3 diagonal transversal
+                lines[0].p1 = { x: 220, y: 230 };
+                lines[0].p2 = { x: 780, y: 230 };
+                lines[1].p1 = { x: 220, y: 420 };
+                lines[1].p2 = { x: 780, y: 420 };
+                lines[2].p1 = { x: 340, y: 530 };
+                lines[2].p2 = { x: 660, y: 120 };
+                if (updateTaskFocus) activateTask(2, false);
+            }
+
+            const analysis = analyzeConfiguration();
+            syncUIWithAnalysis(analysis);
+            render();
+        }
+
+        /**
+         * Reflection Card Toggles
+         */
+        function toggleReflection(idx) {
+            const ans = document.getElementById(`refl-ans-${idx}`);
+            const btn = document.getElementById(`refl-btn-${idx}`);
+            const isHidden = ans.classList.contains('hidden');
+            if (isHidden) {
+                ans.classList.remove('hidden');
+                btn.innerHTML = '<span>Hide Insight</span>';
+            } else {
+                ans.classList.add('hidden');
+                btn.innerHTML = '<span>Reveal / Check Insight</span>';
+            }
+        }
+
+        let allRevealed = false;
+        function toggleAllReflections() {
+            allRevealed = !allRevealed;
+            [1, 2, 3].forEach(idx => {
+                const ans = document.getElementById(`refl-ans-${idx}`);
+                const btn = document.getElementById(`refl-btn-${idx}`);
+                if (allRevealed) {
+                    ans.classList.remove('hidden');
+                    btn.innerHTML = '<span>Hide Insight</span>';
+                } else {
+                    ans.classList.add('hidden');
+                    btn.innerHTML = '<span>Reveal / Check Insight</span>';
+                }
+            });
+            document.getElementById('btn-reveal-all').textContent = allRevealed ? 'Hide All Insights' : 'Reveal All Insights';
+        }
+
+        /**
+         * Canvas Rendering Pipeline
+         */
+        function render() {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const rect = wrapper.getBoundingClientRect();
+            const targetW = Math.floor(rect.width * dpr);
+            const targetH = Math.floor(rect.height * dpr);
+
+            if (canvas.width !== targetW || canvas.height !== targetH) {
+                canvas.width = targetW;
+                canvas.height = targetH;
+            }
+
+            ctx.save();
+            ctx.scale(canvas.width / SHEET_W, canvas.height / SHEET_H);
+            ctx.clearRect(0, 0, SHEET_W, SHEET_H);
+
+            const analysis = currentAnalysis || analyzeConfiguration();
+
+            // 1. Optional Ruler Scale & Coordinate Ticks along Edges
+            if (showGuides) {
+                drawRulerTicks();
+            }
+
+            // 2. Highlight Enclosed Triangle Region (if formed)
+            if (analysis.code === 'triangle' && analysis.vertices) {
+                const [A, B, C] = analysis.vertices;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(B.x, B.y);
+                ctx.lineTo(C.x, C.y);
+                ctx.closePath();
+
+                const grad = ctx.createLinearGradient(A.x, A.y, C.x, C.y);
+                grad.addColorStop(0, 'rgba(245, 158, 11, 0.22)');
+                grad.addColorStop(1, 'rgba(16, 185, 129, 0.22)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = 'rgba(217, 119, 6, 0.55)';
+                ctx.setLineDash([6, 4]);
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw Interior Angle Arcs & Centroid Label if Guides Enabled
+                if (showGuides && analysis.onSheet) {
+                    drawTriangleDetails(analysis);
+                }
+            }
+
+            // 3. Draw Each Infinite Straight Line + Control Handles
+            lines.forEach((line, idx) => {
+                const [endA, endB] = getInfiniteLineEndpoints(line);
+                const isHovered = hoverTarget && hoverTarget.lineIdx === idx;
+                const isDragged = activeDrag && activeDrag.lineIdx === idx;
+                const isLockedInTask3 = task3State.active && task3State.movedLineIdx !== null && task3State.movedLineIdx !== idx;
+
+                // Soft glow halo on hover/drag
+                if (isHovered || isDragged) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(endA.x, endA.y);
+                    ctx.lineTo(endB.x, endB.y);
+                    ctx.strokeStyle = line.lightColor;
+                    ctx.lineWidth = 14;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Infinite extension line
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(endA.x, endA.y);
+                ctx.lineTo(endB.x, endB.y);
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = isDragged ? 3.8 : 3.0;
+                ctx.globalAlpha = isLockedInTask3 ? 0.55 : 0.92;
+                ctx.stroke();
+                ctx.restore();
+
+                // Segment between control handles (slightly bolder)
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(line.p1.x, line.p1.y);
+                ctx.lineTo(line.p2.x, line.p2.y);
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = isDragged ? 4.8 : 3.8;
+                ctx.globalAlpha = isLockedInTask3 ? 0.6 : 1;
+                ctx.stroke();
+                ctx.restore();
+
+                // Line Name Tag near p1
+                drawLineTag(line, isLockedInTask3);
+
+                // Draggable Handles (p1 & p2)
+                ['p1', 'p2'].forEach(key => {
+                    const pt = line[key];
+                    const handleHovered = isHovered && hoverTarget.type === 'handle' && hoverTarget.handleKey === key;
+                    const handleDragged = isDragged && activeDrag.type === 'handle' && activeDrag.handleKey === key;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, handleHovered || handleDragged ? 10 : 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = isLockedInTask3 ? '#94a3b8' : line.color;
+                    ctx.stroke();
+
+                    // Inner center dot
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = isLockedInTask3 ? '#94a3b8' : line.color;
+                    ctx.fill();
+                    ctx.restore();
+                });
+            });
+
+            // 4. Draw Intersection Vertices
+            if (analysis.intersections && analysis.intersections.length > 0) {
+                analysis.intersections.forEach((pt, i) => {
+                    if (pt.x < -20 || pt.x > SHEET_W + 20 || pt.y < -20 || pt.y > SHEET_H + 20) return;
+
+                    ctx.save();
+                    // Outer ring
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, analysis.code === 'concurrent' ? 11 : 7.5, 0, Math.PI * 2);
+                    ctx.fillStyle = analysis.code === 'triangle' ? '#f59e0b' : '#1e293b';
+                    ctx.fill();
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+
+                    if (showGuides) {
+                        const label = analysis.code === 'concurrent'
+                            ? 'Concurrent Point (3 lines)'
+                            : `V${i + 1} (${Math.round(pt.x / 10)}, ${Math.round((SHEET_H - pt.y) / 10)})`;
+                        ctx.font = '600 11px "JetBrains Mono", monospace';
+                        const metrics = ctx.measureText(label);
+                        const bx = Math.min(SHEET_W - metrics.width - 16, Math.max(8, pt.x + 10));
+                        const by = Math.max(22, pt.y - 12);
+
+                        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                        roundRect(ctx, bx - 5, by - 12, metrics.width + 10, 17, 5);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#f8fafc';
+                        ctx.fillText(label, bx, by);
+                    }
+                    ctx.restore();
+                });
+            }
+
+            ctx.restore();
+        }
+
+        function drawRulerTicks() {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.75)';
+            ctx.font = '500 10px "JetBrains Mono", monospace';
+            ctx.lineWidth = 1;
+
+            for (let x = 40; x <= SHEET_W - 40; x += 40) {
+                const isMajor = x % 120 === 0;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, isMajor ? 10 : 5);
+                ctx.stroke();
+                if (isMajor) {
+                    ctx.fillText(`${x / 10}`, x + 3, 12);
+                }
+            }
+            for (let y = 40; y <= SHEET_H - 40; y += 40) {
+                const isMajor = y % 120 === 0;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(isMajor ? 10 : 5, y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawLineTag(line, isLocked) {
+            const dx = line.p2.x - line.p1.x;
+            const dy = line.p2.y - line.p1.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const nx = -dy / len;
+            const ny = dx / len;
+
+            const tx = line.p1.x + nx * 18;
+            const ty = line.p1.y + ny * 18;
+
+            ctx.save();
+            ctx.font = '700 11px "Inter", sans-serif';
+            const text = isLocked ? `${line.name} (Locked)` : line.name;
+            const w = ctx.measureText(text).width;
+            const rx = Math.max(8, Math.min(SHEET_W - w - 16, tx - w / 2));
+            const ry = Math.max(18, Math.min(SHEET_H - 10, ty));
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            roundRect(ctx, rx - 5, ry - 12, w + 10, 17, 6);
+            ctx.fill();
+            ctx.strokeStyle = isLocked ? '#cbd5e1' : line.color;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            ctx.fillStyle = isLocked ? '#64748b' : line.color;
+            ctx.fillText(text, rx, ry);
+            ctx.restore();
+        }
+
+        function drawTriangleDetails(analysis) {
+            const [A, B, C] = analysis.vertices;
+            const cx = (A.x + B.x + C.x) / 3;
+            const cy = (A.y + B.y + C.y) / 3;
+
+            // Centroid Summary Pill
+            ctx.save();
+            const summary = `Δ Enclosed (180°)`;
+            ctx.font = '700 11px "Inter", sans-serif';
+            const w = ctx.measureText(summary).width;
+            ctx.fillStyle = 'rgba(255, 251, 235, 0.94)';
+            roundRect(ctx, cx - w / 2 - 7, cy - 11, w + 14, 19, 7);
+            ctx.fill();
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+            ctx.fillStyle = '#92400e';
+            ctx.fillText(summary, cx - w / 2, cy + 2);
+            ctx.restore();
+
+            // Side length labels at midpoints
+            const edges = [
+                [A, B, analysis.sides[0]],
+                [B, C, analysis.sides[1]],
+                [C, A, analysis.sides[2]]
+            ];
+            edges.forEach(([p, q, length]) => {
+                if (length < 55) return;
+                const mx = (p.x + q.x) / 2;
+                const my = (p.y + q.y) / 2;
+                const label = `${(length / 40).toFixed(1)}u`;
+                ctx.save();
+                ctx.font = '600 10px "JetBrains Mono", monospace';
+                const lw = ctx.measureText(label).width;
+                ctx.fillStyle = 'rgba(255,255,255,0.88)';
+                roundRect(ctx, mx - lw / 2 - 4, my - 9, lw + 8, 14, 4);
+                ctx.fill();
+                ctx.fillStyle = '#475569';
+                ctx.fillText(label, mx - lw / 2, my + 1);
+                ctx.restore();
+            });
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        /**
+         * Pointer Hit Testing & Drag Interaction (Mouse + Touch)
+         */
+        function hitTest(pt) {
+            // 1. Prioritize circular handles
+            for (let i = lines.length - 1; i >= 0; i--) {
+                for (const key of ['p1', 'p2']) {
+                    if (distPoints(pt, lines[i][key]) <= 18) {
+                        return { type: 'handle', lineIdx: i, handleKey: key };
+                    }
+                }
+            }
+            // 2. Check proximity to infinite line body
+            for (let i = lines.length - 1; i >= 0; i--) {
+                if (pointToInfiniteLineDist(pt, lines[i]) <= 12) {
+                    return { type: 'line', lineIdx: i };
+                }
+            }
+            return null;
+        }
+
+        function onPointerDown(e) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const pt = clientToLogical(clientX, clientY);
+            const hit = hitTest(pt);
+
+            if (!hit) return;
+
+            // Enforce single-line rule during Challenge 3
+            if (task3State.active && !task3State.locked) {
+                if (task3State.movedLineIdx === null) {
+                    task3State.movedLineIdx = hit.lineIdx;
+                    document.getElementById('task3-tracker-text').innerHTML = `Moving <strong>${lines[hit.lineIdx].name}</strong> (other 2 lines locked).`;
+                } else if (task3State.movedLineIdx !== hit.lineIdx) {
+                    document.getElementById('lab-feedback-text').textContent = `Challenge 3 Rule: Only ${lines[task3State.movedLineIdx].name} can be moved! Click "Start Challenge 3" to reset.`;
+                    return;
+                }
+            }
+
+            activeDrag = {
+                ...hit,
+                startMouse: pt,
+                startP1: { ...lines[hit.lineIdx].p1 },
+                startP2: { ...lines[hit.lineIdx].p2 }
+            };
+            canvas.style.cursor = 'grabbing';
+            render();
+        }
+
+        function onPointerMove(e) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const pt = clientToLogical(clientX, clientY);
+
+            if (activeDrag) {
+                if (e.cancelable) e.preventDefault();
+                const line = lines[activeDrag.lineIdx];
+
+                if (activeDrag.type === 'handle') {
+                    const snapped = clampLogical(maybeSnap(pt));
+                    const otherKey = activeDrag.handleKey === 'p1' ? 'p2' : 'p1';
+                    // Prevent collapsing handle directly onto opposite handle
+                    if (distPoints(snapped, line[otherKey]) >= 28) {
+                        line[activeDrag.handleKey] = snapped;
+                    }
+                } else if (activeDrag.type === 'line') {
+                    const dx = pt.x - activeDrag.startMouse.x;
+                    const dy = pt.y - activeDrag.startMouse.y;
+                    const rawP1 = { x: activeDrag.startP1.x + dx, y: activeDrag.startP1.y + dy };
+                    const snappedP1 = maybeSnap(rawP1);
+                    const finalDx = snappedP1.x - activeDrag.startP1.x;
+                    const finalDy = snappedP1.y - activeDrag.startP1.y;
+
+                    const nextP1 = { x: activeDrag.startP1.x + finalDx, y: activeDrag.startP1.y + finalDy };
+                    const nextP2 = { x: activeDrag.startP2.x + finalDx, y: activeDrag.startP2.y + finalDy };
+
+                    if (
+                        nextP1.x >= 20 && nextP1.x <= SHEET_W - 20 &&
+                        nextP1.y >= 20 && nextP1.y <= SHEET_H - 20 &&
+                        nextP2.x >= 20 && nextP2.x <= SHEET_W - 20 &&
+                        nextP2.y >= 20 && nextP2.y <= SHEET_H - 20
+                    ) {
+                        line.p1 = nextP1;
+                        line.p2 = nextP2;
+                    }
+                }
+
+                const analysis = analyzeConfiguration();
+                syncUIWithAnalysis(analysis);
+                render();
+                return;
+            }
+
+            // Update hover cursor & highlight
+            const hit = hitTest(pt);
+            const prevHover = JSON.stringify(hoverTarget);
+            hoverTarget = hit;
+            canvas.style.cursor = hit ? 'grab' : 'crosshair';
+            if (prevHover !== JSON.stringify(hoverTarget)) {
+                render();
+            }
+        }
+
+        function onPointerUp() {
+            if (activeDrag) {
+                activeDrag = null;
+                canvas.style.cursor = hoverTarget ? 'grab' : 'crosshair';
+                render();
+            }
+        }
+
+        /**
+         * Event Listeners & Initialization
+         */
+        function init() {
+            // Pointer events
+            canvas.addEventListener('mousedown', onPointerDown);
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('mouseup', onPointerUp);
+
+            canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+            window.addEventListener('touchmove', onPointerMove, { passive: false });
+            window.addEventListener('touchend', onPointerUp);
+
+            // Snap to Grid Toggle
+            document.getElementById('toggle-snap').addEventListener('click', () => {
+                snapToGrid = !snapToGrid;
+                const btn = document.getElementById('toggle-snap');
+                const dot = document.getElementById('snap-dot');
+                if (snapToGrid) {
+                    btn.classList.remove('bg-white', 'border-stone-300', 'text-slate-700');
+                    btn.classList.add('bg-emerald-50', 'border-emerald-400', 'text-emerald-900');
+                    dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                } else {
+                    btn.classList.add('bg-white', 'border-stone-300', 'text-slate-700');
+                    btn.classList.remove('bg-emerald-50', 'border-emerald-400', 'text-emerald-900');
+                    dot.className = 'w-2 h-2 rounded-full bg-stone-400';
+                }
+            });
+
+            // Ruler & Angle Guides Toggle
+            document.getElementById('toggle-guides').addEventListener('click', () => {
+                showGuides = !showGuides;
+                const btn = document.getElementById('toggle-guides');
+                const dot = document.getElementById('guides-dot');
+                if (showGuides) {
+                    btn.classList.add('border-amber-400', 'bg-amber-50', 'text-amber-950');
+                    btn.classList.remove('border-stone-300', 'bg-white', 'text-slate-700');
+                    dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                } else {
+                    btn.classList.remove('border-amber-400', 'bg-amber-50', 'text-amber-950');
+                    btn.classList.add('border-stone-300', 'bg-white', 'text-slate-700');
+                    dot.className = 'w-2 h-2 rounded-full bg-stone-400';
+                }
+                render();
+            });
+
+            // Reset Sheet
+            document.getElementById('btn-reset-sheet').addEventListener('click', () => {
+                task3State = { active: false, movedLineIdx: null, locked: false };
+                document.getElementById('task3-tracker-text').textContent = 'Click "Start Challenge 3" to begin tracking.';
+                loadPreset('triangle');
+                document.getElementById('lab-feedback-text').textContent = 'Sheet reset to default 3-line arrangement.';
+            });
+
+            window.addEventListener('resize', render);
+
+            // Initial analysis & draw
+            const initialAnalysis = analyzeConfiguration();
+            syncUIWithAnalysis(initialAnalysis);
+            render();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
